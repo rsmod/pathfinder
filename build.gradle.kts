@@ -10,6 +10,7 @@ plugins {
     signing
     kotlin("jvm") version "1.4.0"
     id("me.champeau.gradle.jmh") version "0.5.2"
+    id("org.jmailen.kotlinter") version "3.3.0"
 }
 
 repositories {

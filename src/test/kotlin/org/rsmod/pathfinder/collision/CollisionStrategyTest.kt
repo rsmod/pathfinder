@@ -56,12 +56,12 @@ class CollisionStrategyTest {
 
     private fun validPath(): CollisionParameters {
         val flags = IntArray(DEFAULT_SEARCH_MAP_SIZE * DEFAULT_SEARCH_MAP_SIZE)
-        val src = RouteCoordinates(0, 0)
-        val dest = RouteCoordinates(1, 0)
-        val srcFlagX = src.x + (DEFAULT_SEARCH_MAP_SIZE / 2)
-        val srcFlagY = src.y + (DEFAULT_SEARCH_MAP_SIZE / 2)
-        val destFlagX = dest.x + (DEFAULT_SEARCH_MAP_SIZE / 2)
-        val destFlagY = dest.y + (DEFAULT_SEARCH_MAP_SIZE / 2)
+        val src = RouteCoordinates(3200, 3200)
+        val dest = src.translate(1, 0)
+        val srcFlagX = DEFAULT_SEARCH_MAP_SIZE / 2
+        val srcFlagY = DEFAULT_SEARCH_MAP_SIZE / 2
+        val destFlagX = (dest.x - src.x) + (DEFAULT_SEARCH_MAP_SIZE / 2)
+        val destFlagY = (dest.y - src.y) + (DEFAULT_SEARCH_MAP_SIZE / 2)
         flags[(srcFlagY * DEFAULT_SEARCH_MAP_SIZE) + srcFlagX] = BLOCK_FLAG
         flags[(destFlagY * DEFAULT_SEARCH_MAP_SIZE) + destFlagX] = BLOCK_FLAG
         return CollisionParameters(src, dest, flags)
@@ -69,11 +69,11 @@ class CollisionStrategyTest {
 
     private fun invalidPath(): CollisionParameters {
         val flags = IntArray(DEFAULT_SEARCH_MAP_SIZE * DEFAULT_SEARCH_MAP_SIZE)
-        val src = RouteCoordinates(0, 0)
-        val dest = RouteCoordinates(1, 0)
+        val src = RouteCoordinates(3200, 3200)
+        val dest = src.translate(1, 0)
         val flag = CollisionFlag.FLOOR
-        val srcFlagX = src.x + (DEFAULT_SEARCH_MAP_SIZE / 2)
-        val srcFlagY = src.y + (DEFAULT_SEARCH_MAP_SIZE / 2)
+        val srcFlagX = DEFAULT_SEARCH_MAP_SIZE / 2
+        val srcFlagY = DEFAULT_SEARCH_MAP_SIZE / 2
         flags[(srcFlagY * DEFAULT_SEARCH_MAP_SIZE) + srcFlagX] = flag
         return CollisionParameters(src, dest, flags)
     }

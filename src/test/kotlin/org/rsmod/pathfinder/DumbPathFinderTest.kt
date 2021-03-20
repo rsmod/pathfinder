@@ -23,8 +23,8 @@ class DumbPathFinderTest {
 
     @Test
     fun reachEmptyTile() {
-        val src = RouteCoordinates(0, 0)
-        val dest = RouteCoordinates(1, 0)
+        val src = RouteCoordinates(3200, 3200)
+        val dest = src.translate(1, 0)
         val route = pf.findPath(flags, src.x, src.y, dest.x, dest.y)
         Assertions.assertEquals(1, route.size)
         Assertions.assertEquals(dest.x, route.last().x)
@@ -33,8 +33,8 @@ class DumbPathFinderTest {
 
     @Test
     fun failOccupiedTile() {
-        val src = RouteCoordinates(0, 0)
-        val dest = RouteCoordinates(1, 0)
+        val src = RouteCoordinates(3200, 3200)
+        val dest = src.translate(1, 0)
 
         /* set flag mask to block path */
         val flagX = halfMap + 1
@@ -48,8 +48,8 @@ class DumbPathFinderTest {
 
     @Test
     fun fullyBlockedByObject() {
-        val src = RouteCoordinates(0, 0)
-        val dest = RouteCoordinates(2, 0)
+        val src = RouteCoordinates(3200, 3200)
+        val dest = src.translate(2, 0)
 
         /* set flag mask to block path */
         val flagX = halfMap + 1
@@ -63,8 +63,8 @@ class DumbPathFinderTest {
 
     @Test
     fun partiallyBlockedByObject() {
-        val src = RouteCoordinates(0, 0)
-        val dest = RouteCoordinates(3, 0)
+        val src = RouteCoordinates(3200, 3200)
+        val dest = src.translate(3, 0)
 
         /* set flag mask to block path */
         val flagX = halfMap + 2
@@ -83,8 +83,8 @@ class DumbPathFinderTest {
     @ParameterizedTest
     @ArgumentsSource(DimensionParameterProvider::class)
     fun reachRectObjectSuccessfully(width: Int, height: Int) {
-        val src = RouteCoordinates(0, 0)
-        val dest = RouteCoordinates(3 + width, 0) /* ensure destination is further than width */
+        val src = RouteCoordinates(3200, 3200)
+        val dest = src.translate(3 + width, 0) /* ensure destination is further than width */
 
         val flagX = halfMap + 3 + width
         val flagY = halfMap

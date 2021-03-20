@@ -27,7 +27,7 @@ class SmartPathFinderTest {
 
     @Test
     fun reachEmptyTile() {
-        val src = RouteCoordinates(0, 0)
+        val src = RouteCoordinates(3200, 3200)
         val dest = src.translate(1, 0)
         val route = pf.findPath(flags, src.x, src.y, dest.x, dest.y)
         Assertions.assertEquals(1, route.size)
@@ -37,7 +37,7 @@ class SmartPathFinderTest {
 
     @Test
     fun failOccupiedTile() {
-        val src = RouteCoordinates(0, 0)
+        val src = RouteCoordinates(3200, 3200)
         val dest = src.translate(1, 0)
 
         /* set flag mask to block path */
@@ -79,7 +79,7 @@ class SmartPathFinderTest {
         val flagY = halfMap + dir.offY
         flags[(flagY * pf.searchMapSize) + flagX] = CollisionFlag.OBJECT
 
-        val route = pf.findPath(flags, src.x, src.y, dest.x, dest.y)
+        val route = pf.findPath(flags, src.x, src.y, dest.x, dest.y, moveNear = false)
         Assertions.assertTrue(route.isEmpty())
     }
 
@@ -96,7 +96,7 @@ class SmartPathFinderTest {
     @ParameterizedTest
     @ArgumentsSource(DimensionParameterProvider::class)
     fun reachRectObjectSuccessfully(width: Int, height: Int) {
-        val src = RouteCoordinates(0, 0)
+        val src = RouteCoordinates(3200, 3200)
         val dest = src.translate(3 + width, 0) /* ensure destination is further than width */
 
         val flagX = halfMap
@@ -161,7 +161,11 @@ class SmartPathFinderTest {
                 Arguments.of(North),
                 Arguments.of(South),
                 Arguments.of(East),
-                Arguments.of(West)
+                Arguments.of(West),
+                Arguments.of(NorthEast),
+                Arguments.of(NorthWest),
+                Arguments.of(SouthEast),
+                Arguments.of(SouthWest)
             )
         }
     }

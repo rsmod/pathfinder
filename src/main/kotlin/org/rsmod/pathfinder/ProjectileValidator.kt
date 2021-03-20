@@ -21,6 +21,8 @@
  */
 package org.rsmod.pathfinder
 
+import org.rsmod.pathfinder.collision.CollisionFlagMap
+import org.rsmod.pathfinder.collision.CollisionLocalFlagMap
 import org.rsmod.pathfinder.flag.CollisionFlag.OBJECT_PROJECTILE_BLOCKER
 import org.rsmod.pathfinder.flag.CollisionFlag.WALL_EAST_PROJECTILE_BLOCKER
 import org.rsmod.pathfinder.flag.CollisionFlag.WALL_NORTH_PROJECTILE_BLOCKER
@@ -32,7 +34,7 @@ import kotlin.math.abs
 public class ProjectileValidator(public val searchMapSize: Int) {
 
     public fun isValid(
-        clipFlags: IntArray,
+        flags: IntArray,
         srcX: Int,
         srcY: Int,
         destX: Int,
@@ -41,12 +43,26 @@ public class ProjectileValidator(public val searchMapSize: Int) {
         destWidth: Int = 0,
         destHeight: Int = 0
     ): Boolean {
-        val route = rayCast(clipFlags, srcX, srcY, destX, destY, srcSize, destWidth, destHeight)
+        val localFlags = CollisionLocalFlagMap(srcX, srcY, searchMapSize, flags)
+        return isValid(localFlags, srcX, srcY, destX, destY, srcSize, destWidth, destHeight)
+    }
+
+    public fun isValid(
+        flags: CollisionFlagMap,
+        srcX: Int,
+        srcY: Int,
+        destX: Int,
+        destY: Int,
+        srcSize: Int = 1,
+        destWidth: Int = 0,
+        destHeight: Int = 0
+    ): Boolean {
+        val route = rayCast(flags, srcX, srcY, destX, destY, srcSize, destWidth, destHeight)
         return route.success
     }
 
     public fun rayCast(
-        clipFlags: IntArray,
+        flags: CollisionFlagMap,
         srcX: Int,
         srcY: Int,
         destX: Int,
@@ -92,14 +108,14 @@ public class ProjectileValidator(public val searchMapSize: Int) {
                 currX += offsetX
                 val currY = scaleDown(scaledY)
 
-                if (clipFlags.isFlagged(currX, currY, xFlags)) {
+                if (flags.isFlagged(baseX + currX, baseY + currY, xFlags)) {
                     return Route(coords, alternative = false, success = false)
                 }
 
                 scaledY += tangent
 
                 val nextY = scaleDown(scaledY)
-                if (nextY != currY && clipFlags.isFlagged(currX, nextY, yFlags)) {
+                if (nextY != currY && flags.isFlagged(baseX + currX, baseY + nextY, yFlags)) {
                     return Route(coords, alternative = false, success = false)
                 }
             }
@@ -115,14 +131,14 @@ public class ProjectileValidator(public val searchMapSize: Int) {
                 currY += offsetY
                 val currX = scaleDown(scaledX)
 
-                if (clipFlags.isFlagged(currX, currY, yFlags)) {
+                if (flags.isFlagged(baseX + currX, baseY + currY, yFlags)) {
                     return Route(coords, alternative = false, success = false)
                 }
 
                 scaledX += tangent
 
                 val nextX = scaleDown(scaledX)
-                if (nextX != currX && clipFlags.isFlagged(nextX, currY, xFlags)) {
+                if (nextX != currX && flags.isFlagged(baseX + nextX, baseY + currY, xFlags)) {
                     return Route(coords, alternative = false, success = false)
                 }
             }
@@ -138,7 +154,7 @@ public class ProjectileValidator(public val searchMapSize: Int) {
         }
     }
 
-    private fun IntArray.isFlagged(x: Int, y: Int, flags: Int): Boolean {
+    private fun CollisionFlagMap.isFlagged(x: Int, y: Int, flags: Int): Boolean {
         return (this[x, y] and flags) != 0
     }
 

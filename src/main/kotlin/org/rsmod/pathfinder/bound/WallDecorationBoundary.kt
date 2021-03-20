@@ -1,27 +1,27 @@
 package org.rsmod.pathfinder.bound
 
+import org.rsmod.pathfinder.collision.CollisionFlagMap
+
 internal fun reachWallDeco(
-    clipFlags: IntArray,
-    mapSize: Int,
-    srcX: Int,
-    srcY: Int,
+    flags: CollisionFlagMap,
+    currX: Int,
+    currY: Int,
     destX: Int,
     destY: Int,
     srcSize: Int,
     shape: Int,
     rot: Int
 ): Boolean = when {
-    srcSize == 1 && srcX == destX && destY == srcY -> true
-    srcSize != 1 && destX >= srcX && srcSize + srcX + -1 >= destX && srcSize + destY + -1 >= destY -> true
-    srcSize == 1 -> reachWallDeco1(clipFlags, mapSize, srcX, srcY, destX, destY, shape, rot)
-    else -> reachWallDecoN(clipFlags, mapSize, srcX, srcY, destX, destY, srcSize, shape, rot)
+    srcSize == 1 && currX == destX && destY == currY -> true
+    srcSize != 1 && destX >= currX && srcSize + currX + -1 >= destX && srcSize + destY + -1 >= destY -> true
+    srcSize == 1 -> reachWallDeco1(flags, currX, currY, destX, destY, shape, rot)
+    else -> reachWallDecoN(flags, currX, currY, destX, destY, srcSize, shape, rot)
 }
 
 private fun reachWallDeco1(
-    clipFlags: IntArray,
-    mapSize: Int,
-    srcX: Int,
-    srcY: Int,
+    flags: CollisionFlagMap,
+    currX: Int,
+    currY: Int,
     destX: Int,
     destY: Int,
     shape: Int,
@@ -30,116 +30,115 @@ private fun reachWallDeco1(
     if (shape in 6..7) {
         when (rot.alteredRotation(shape)) {
             0 -> {
-                if (srcX == destX + 1 && srcY == destY
-                    && (flag(clipFlags, mapSize, srcX, srcY) and 0x80) == 0
+                if (currX == destX + 1 && currY == destY &&
+                    (flag(flags, currX, currY) and 0x80) == 0
                 ) return true
-                if (srcX == destX && srcY == destY - 1
-                    && (flag(clipFlags, mapSize, srcX, srcY) and 0x2) == 0
+                if (currX == destX && currY == destY - 1 &&
+                    (flag(flags, currX, currY) and 0x2) == 0
                 ) return true
             }
             1 -> {
-                if (srcX == destX - 1 && srcY == destY
-                    && (flag(clipFlags, mapSize, srcX, srcY) and 0x8) == 0
+                if (currX == destX - 1 && currY == destY &&
+                    (flag(flags, currX, currY) and 0x8) == 0
                 ) return true
-                if (srcX == destX && srcY == destY - 1
-                    && (flag(clipFlags, mapSize, srcX, srcY) and 0x2) == 0
+                if (currX == destX && currY == destY - 1 &&
+                    (flag(flags, currX, currY) and 0x2) == 0
                 ) return true
             }
             2 -> {
-                if (srcX == destX - 1 && srcY == destY
-                    && (flag(clipFlags, mapSize, srcX, srcY) and 0x8) == 0
+                if (currX == destX - 1 && currY == destY &&
+                    (flag(flags, currX, currY) and 0x8) == 0
                 ) return true
-                if (srcX == destX && srcY == destY + 1
-                    && (flag(clipFlags, mapSize, srcX, srcY) and 0x20) == 0
+                if (currX == destX && currY == destY + 1 &&
+                    (flag(flags, currX, currY) and 0x20) == 0
                 ) return true
             }
             3 -> {
-                if (srcX == destX + 1 && srcY == destY
-                    && (flag(clipFlags, mapSize, srcX, srcY) and 0x80) == 0
+                if (currX == destX + 1 && currY == destY &&
+                    (flag(flags, currX, currY) and 0x80) == 0
                 ) return true
-                if (srcX == destX && srcY == destY + 1
-                    && (flag(clipFlags, mapSize, srcX, srcY) and 0x20) == 0
+                if (currX == destX && currY == destY + 1 &&
+                    (flag(flags, currX, currY) and 0x20) == 0
                 ) return true
             }
         }
     } else if (shape == 8) {
-        if (srcX == destX && srcY == destY + 1
-            && (flag(clipFlags, mapSize, srcX, srcY) and 0x20) == 0
+        if (currX == destX && currY == destY + 1 &&
+            (flag(flags, currX, currY) and 0x20) == 0
         ) return true
-        if (srcX == destX && srcY == destY - 1
-            && (flag(clipFlags, mapSize, srcX, srcY) and 0x2) == 0
+        if (currX == destX && currY == destY - 1 &&
+            (flag(flags, currX, currY) and 0x2) == 0
         ) return true
-        if (srcX == destX - 1 && srcY == destY
-            && (flag(clipFlags, mapSize, srcX, srcY) and 0x8) == 0
+        if (currX == destX - 1 && currY == destY &&
+            (flag(flags, currX, currY) and 0x8) == 0
         ) return true
 
-        return srcX == destX + 1 && srcY == destY
-            && (flag(clipFlags, mapSize, srcX, srcY) and 0x80) == 0
+        return currX == destX + 1 && currY == destY &&
+            (flag(flags, currX, currY) and 0x80) == 0
     }
     return false
 }
 
 private fun reachWallDecoN(
-    clipFlags: IntArray,
-    mapSize: Int,
-    srcX: Int,
-    srcY: Int,
+    flags: CollisionFlagMap,
+    currX: Int,
+    currY: Int,
     destX: Int,
     destY: Int,
     srcSize: Int,
     shape: Int,
     rot: Int
 ): Boolean {
-    val east = srcX + srcSize - 1
-    val north = srcY + srcSize - 1
+    val east = currX + srcSize - 1
+    val north = currY + srcSize - 1
     if (shape in 6..7) {
         when (rot.alteredRotation(shape)) {
             0 -> {
-                if (srcX == destX + 1 && srcY <= destY && north >= destY
-                    && (flag(clipFlags, mapSize, srcX, destY) and 0x80) == 0
+                if (currX == destX + 1 && currY <= destY && north >= destY &&
+                    (flag(flags, currX, destY) and 0x80) == 0
                 ) return true
-                if (srcX <= destX && srcY == destY - srcSize && east >= destX
-                    && (flag(clipFlags, mapSize, destX, north) and 0x2) == 0
+                if (currX <= destX && currY == destY - srcSize && east >= destX &&
+                    (flag(flags, destX, north) and 0x2) == 0
                 ) return true
             }
             1 -> {
-                if (srcX == destX - srcSize && srcY <= destY && north >= destY
-                    && (flag(clipFlags, mapSize, east, destY) and 0x8) == 0
+                if (currX == destX - srcSize && currY <= destY && north >= destY &&
+                    (flag(flags, east, destY) and 0x8) == 0
                 ) return true
-                if (srcX <= destX && srcY == destY - srcSize && east >= destX
-                    && (flag(clipFlags, mapSize, destX, north) and 0x2) == 0
+                if (currX <= destX && currY == destY - srcSize && east >= destX &&
+                    (flag(flags, destX, north) and 0x2) == 0
                 ) return true
             }
             2 -> {
-                if (srcX == destX - srcSize && srcY <= destY && north >= destY
-                    && (flag(clipFlags, mapSize, east, destY) and 0x8) == 0
+                if (currX == destX - srcSize && currY <= destY && north >= destY &&
+                    (flag(flags, east, destY) and 0x8) == 0
                 ) return true
-                if (srcX <= destX && srcY == destY + 1 && east >= destX
-                    && (flag(clipFlags, mapSize, destX, srcY) and 0x20) == 0
+                if (currX <= destX && currY == destY + 1 && east >= destX &&
+                    (flag(flags, destX, currY) and 0x20) == 0
                 ) return true
             }
             3 -> {
-                if (srcX == destX + 1 && srcY <= destY && north >= destY
-                    && (flag(clipFlags, mapSize, srcX, destY) and 0x80) == 0
+                if (currX == destX + 1 && currY <= destY && north >= destY &&
+                    (flag(flags, currX, destY) and 0x80) == 0
                 ) return true
-                if (srcX <= destX && srcY == destY + 1 && east >= destX
-                    && (flag(clipFlags, mapSize, destX, srcY) and 0x20) == 0
+                if (currX <= destX && currY == destY + 1 && east >= destX &&
+                    (flag(flags, destX, currY) and 0x20) == 0
                 ) return true
             }
         }
     } else if (shape == 8) {
-        if (srcX <= destX && srcY == destY + 1 && east >= destX
-            && (flag(clipFlags, mapSize, destX, srcY) and 0x20) == 0
+        if (currX <= destX && currY == destY + 1 && east >= destX &&
+            (flag(flags, destX, currY) and 0x20) == 0
         ) return true
-        if (srcX <= destX && srcY == destY - srcSize && east >= destX
-            && (flag(clipFlags, mapSize, destX, north) and 0x2) == 0
+        if (currX <= destX && currY == destY - srcSize && east >= destX &&
+            (flag(flags, destX, north) and 0x2) == 0
         ) return true
-        if (srcX == destX - srcSize && srcY <= destY && north >= destY
-            && (flag(clipFlags, mapSize, east, destY) and 0x8) == 0
+        if (currX == destX - srcSize && currY <= destY && north >= destY &&
+            (flag(flags, east, destY) and 0x8) == 0
         ) return true
 
-        return srcX == destX + 1 && srcY <= destY && north >= destY
-            && (flag(clipFlags, mapSize, srcX, destY) and 0x80) == 0
+        return currX == destX + 1 && currY <= destY && north >= destY &&
+            (flag(flags, currX, destY) and 0x80) == 0
     }
     return false
 }
@@ -148,6 +147,6 @@ private fun Int.alteredRotation(shape: Int): Int {
     return if (shape == 7) (this + 2) and 0x3 else this
 }
 
-private fun flag(flags: IntArray, width: Int, x: Int, y: Int): Int {
-    return flags[(y * width) + x]
+private fun flag(flags: CollisionFlagMap, x: Int, y: Int): Int {
+    return flags[x, y]
 }

@@ -1,13 +1,13 @@
 package org.rsmod.pathfinder.bound
 
+import org.rsmod.pathfinder.collision.CollisionFlagMap
 import kotlin.math.min
 
 internal fun reachRectangle(
-    clipFlags: IntArray,
-    mapSize: Int,
+    flags: CollisionFlagMap,
     accessBitMask: Int,
-    srcX: Int,
-    srcY: Int,
+    currX: Int,
+    currY: Int,
     destX: Int,
     destY: Int,
     srcSize: Int,
@@ -15,45 +15,43 @@ internal fun reachRectangle(
     destHeight: Int
 ): Boolean = when {
     srcSize > 1 -> {
-        collides(srcX, srcY, destX, destY, srcSize, srcSize, destWidth, destHeight)
-            || reachRectangleN(
-            clipFlags,
-            mapSize,
-            accessBitMask,
-            srcX,
-            srcY,
-            destX,
-            destY,
-            srcSize,
-            srcSize,
-            destWidth,
-            destHeight
-        )
+        collides(currX, currY, destX, destY, srcSize, srcSize, destWidth, destHeight) ||
+            reachRectangleN(
+                flags,
+                accessBitMask,
+                currX,
+                currY,
+                destX,
+                destY,
+                srcSize,
+                srcSize,
+                destWidth,
+                destHeight
+            )
     }
-    else -> reachRectangle1(clipFlags, mapSize, accessBitMask, srcX, srcY, destX, destY, destWidth, destHeight)
+    else -> reachRectangle1(flags, accessBitMask, currX, currY, destX, destY, destWidth, destHeight)
 }
 
 private fun collides(
-    srcX: Int,
-    srcY: Int,
+    currX: Int,
+    currY: Int,
     destX: Int,
     destY: Int,
     srcWidth: Int,
     srcHeight: Int,
     destWidth: Int,
     destHeight: Int
-): Boolean = if (srcX >= destX + destWidth || srcX + srcWidth <= destX) {
+): Boolean = if (currX >= destX + destWidth || currX + srcWidth <= destX) {
     false
 } else {
-    srcY < destY + destHeight && destY < srcHeight + srcY
+    currY < destY + destHeight && destY < srcHeight + currY
 }
 
 private fun reachRectangle1(
-    clipFlags: IntArray,
-    mapSize: Int,
+    flags: CollisionFlagMap,
     accessBitMask: Int,
-    srcX: Int,
-    srcY: Int,
+    currX: Int,
+    currY: Int,
     destX: Int,
     destY: Int,
     destWidth: Int,
@@ -62,36 +60,35 @@ private fun reachRectangle1(
     val east = destX + destWidth - 1
     val north = destY + destHeight - 1
 
-    if (srcX in destX..east && srcY >= destY && srcY <= north)
+    if (currX in destX..east && currY >= destY && currY <= north)
         return true
 
-    if (srcX == destX - 1 && srcY >= destY && srcY <= north
-        && (flag(clipFlags, mapSize, srcX, srcY) and 0x8) == 0
-        && (accessBitMask and 0x8) == 0
+    if (currX == destX - 1 && currY >= destY && currY <= north &&
+        (flag(flags, currX, currY) and 0x8) == 0 &&
+        (accessBitMask and 0x8) == 0
     ) return true
 
-    if (srcX == east + 1 && srcY >= destY && srcY <= north
-        && (flag(clipFlags, mapSize, srcX, srcY) and 0x80) == 0
-        && (accessBitMask and 0x2) == 0
+    if (currX == east + 1 && currY >= destY && currY <= north &&
+        (flag(flags, currX, currY) and 0x80) == 0 &&
+        (accessBitMask and 0x2) == 0
     ) return true
 
-    if (srcY + 1 == destY && srcX >= destX && srcX <= east
-        && (flag(clipFlags, mapSize, srcX, srcY) and 0x2) == 0
-        && (accessBitMask and 0x4) == 0
+    if (currY + 1 == destY && currX >= destX && currX <= east &&
+        (flag(flags, currX, currY) and 0x2) == 0 &&
+        (accessBitMask and 0x4) == 0
 
     ) return true
 
-    return srcY == north + 1 && srcX >= destX && srcX <= east
-        && (flag(clipFlags, mapSize, srcX, srcY) and 0x20) == 0
-        && (accessBitMask and 0x1) == 0
+    return currY == north + 1 && currX >= destX && currX <= east &&
+        (flag(flags, currX, currY) and 0x20) == 0 &&
+        (accessBitMask and 0x1) == 0
 }
 
 private fun reachRectangleN(
-    clipFlags: IntArray,
-    mapSize: Int,
+    flags: CollisionFlagMap,
     accessBitMask: Int,
-    srcX: Int,
-    srcY: Int,
+    currX: Int,
+    currY: Int,
     destX: Int,
     destY: Int,
     srcWidth: Int,
@@ -99,22 +96,22 @@ private fun reachRectangleN(
     destWidth: Int,
     destHeight: Int
 ): Boolean {
-    val srcEast = srcX + srcWidth
-    val srcNorth = srcHeight + srcY
+    val srcEast = currX + srcWidth
+    val srcNorth = srcHeight + currY
     val destEast = destWidth + destX
     val destNorth = destHeight + destY
-    if (srcX in destX until destEast) {
+    if (currX in destX until destEast) {
         if (destY == srcNorth && (accessBitMask and 0x4) == 0) {
             val minEast = min(srcEast, destEast)
-            for (x in srcX until minEast) {
-                if ((flag(clipFlags, mapSize, x, srcNorth - 1) and 0x2) == 0) {
+            for (x in currX until minEast) {
+                if ((flag(flags, x, srcNorth - 1) and 0x2) == 0) {
                     return true
                 }
             }
-        } else if (destNorth == srcY && (accessBitMask and 0x1) == 0) {
+        } else if (destNorth == currY && (accessBitMask and 0x1) == 0) {
             val minEastX = min(srcEast, destEast)
-            for (x in srcX until minEastX) {
-                if ((flag(clipFlags, mapSize, x, srcY) and 0x20) == 0) {
+            for (x in currX until minEastX) {
+                if ((flag(flags, x, currY) and 0x20) == 0) {
                     return true
                 }
             }
@@ -122,29 +119,29 @@ private fun reachRectangleN(
     } else if (srcEast in (destX + 1)..destEast) {
         if (destY == srcNorth && (accessBitMask and 0x4) == 0) {
             for (x in destX until srcEast) {
-                if ((flag(clipFlags, mapSize, x, srcNorth - 1) and 0x2) == 0) {
+                if ((flag(flags, x, srcNorth - 1) and 0x2) == 0) {
                     return true
                 }
             }
-        } else if (srcY == destNorth && (accessBitMask and 0x1) == 0) {
+        } else if (currY == destNorth && (accessBitMask and 0x1) == 0) {
             for (x in destX until srcEast) {
-                if ((flag(clipFlags, mapSize, x, srcY) and 0x2) == 0) {
+                if ((flag(flags, x, currY) and 0x2) == 0) {
                     return true
                 }
             }
         }
-    } else if (srcY in destY until destNorth) {
+    } else if (currY in destY until destNorth) {
         if (srcEast == destX && (accessBitMask and 0x8) == 0) {
             val minNorthY = min(srcNorth, destNorth)
-            for (y in srcY until minNorthY) {
-                if ((flag(clipFlags, mapSize, srcEast - 1, y) and 0x8) == 0) {
+            for (y in currY until minNorthY) {
+                if ((flag(flags, srcEast - 1, y) and 0x8) == 0) {
                     return true
                 }
             }
-        } else if (destEast == srcX && (accessBitMask and 0x2) == 0) {
+        } else if (destEast == currX && (accessBitMask and 0x2) == 0) {
             val minNorthY = min(srcNorth, destNorth)
-            for (y in srcY until minNorthY) {
-                if ((flag(clipFlags, mapSize, srcX, y) and 0x80) == 0) {
+            for (y in currY until minNorthY) {
+                if ((flag(flags, currX, y) and 0x80) == 0) {
                     return true
                 }
             }
@@ -152,13 +149,13 @@ private fun reachRectangleN(
     } else if (srcNorth in (destY + 1)..destNorth) {
         if (destX == srcEast && (accessBitMask and 0x8) == 0) {
             for (y in destY until srcNorth) {
-                if ((flag(clipFlags, mapSize, srcEast - 1, y) and 0x8) == 0) {
+                if ((flag(flags, srcEast - 1, y) and 0x8) == 0) {
                     return true
                 }
             }
-        } else if (destEast == srcX && (accessBitMask and 0x2) == 0) {
+        } else if (destEast == currX && (accessBitMask and 0x2) == 0) {
             for (y in destY until srcNorth) {
-                if ((flag(clipFlags, mapSize, srcX, y) and 0x80) == 0) {
+                if ((flag(flags, currX, y) and 0x80) == 0) {
                     return true
                 }
             }
@@ -167,6 +164,6 @@ private fun reachRectangleN(
     return false
 }
 
-private fun flag(flags: IntArray, width: Int, x: Int, y: Int): Int {
-    return flags[(y * width) + x]
+private fun flag(flags: CollisionFlagMap, x: Int, y: Int): Int {
+    return flags[x, y]
 }
