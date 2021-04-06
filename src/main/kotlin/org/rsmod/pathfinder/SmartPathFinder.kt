@@ -1,12 +1,11 @@
 package org.rsmod.pathfinder
 
-import org.rsmod.pathfinder.bound.reachRectangle
-import org.rsmod.pathfinder.bound.reachWall
-import org.rsmod.pathfinder.bound.reachWallDeco
 import org.rsmod.pathfinder.collision.CollisionStrategies
 import org.rsmod.pathfinder.collision.CollisionStrategy
 import org.rsmod.pathfinder.flag.CollisionFlag
 import org.rsmod.pathfinder.flag.DirectionFlag
+import org.rsmod.pathfinder.reach.DefaultReachStrategy
+import org.rsmod.pathfinder.reach.ReachStrategy
 import java.util.Arrays
 import kotlin.collections.ArrayList
 import kotlin.math.abs
@@ -22,11 +21,6 @@ private const val DEFAULT_SRC_DIRECTION_VALUE = 99
 private const val MAX_ALTERNATIVE_ROUTE_LOWEST_COST = 1000
 private const val MAX_ALTERNATIVE_ROUTE_SEEK_RANGE = 100
 private const val MAX_ALTERNATIVE_ROUTE_DISTANCE_FROM_DESTINATION = 10
-
-private const val WALL_STRATEGY = 0
-private const val WALL_DECO_STRATEGY = 1
-private const val RECTANGLE_STRATEGY = 2
-private const val NO_STRATEGY = 3
 
 /*
  * For optimization, we use this value to separate each section
@@ -62,7 +56,8 @@ public class SmartPathFinder(
         moveNear: Boolean = true,
         accessBitMask: Int = 0,
         maxTurns: Int = DEFAULT_MAX_TURNS,
-        collision: CollisionStrategy = CollisionStrategies.Normal
+        collision: CollisionStrategy = CollisionStrategies.Normal,
+        reachStrategy: ReachStrategy = DefaultReachStrategy
     ): Route {
         require(flags.size == directions.size) {
             "Clipping flag size must be same size as [directions] and [distances]"
@@ -88,7 +83,8 @@ public class SmartPathFinder(
                 objRot,
                 objShape,
                 accessBitMask,
-                collision
+                collision,
+                reachStrategy
             )
             2 -> findPath2(
                 flags,
@@ -100,7 +96,8 @@ public class SmartPathFinder(
                 objRot,
                 objShape,
                 accessBitMask,
-                collision
+                collision,
+                reachStrategy
             )
             else -> findPathN(
                 flags,
@@ -112,7 +109,8 @@ public class SmartPathFinder(
                 objRot,
                 objShape,
                 accessBitMask,
-                collision
+                collision,
+                reachStrategy
             )
         }
         if (!pathFound) {
@@ -179,7 +177,8 @@ public class SmartPathFinder(
         objRot: Int,
         objShape: Int,
         accessBitMask: Int,
-        collision: CollisionStrategy
+        collision: CollisionStrategy,
+        reachStrategy: ReachStrategy
     ): Boolean {
         var x: Int
         var y: Int
@@ -191,7 +190,7 @@ public class SmartPathFinder(
             currLocalY = validLocalY[bufReaderIndex]
             bufReaderIndex = (bufReaderIndex + 1) and (ringBufferSize - 1)
 
-            if (reached(
+            if (reachStrategy.reached(
                     flags,
                     currLocalX,
                     currLocalY,
@@ -202,7 +201,8 @@ public class SmartPathFinder(
                     srcSize,
                     objRot,
                     objShape,
-                    accessBitMask
+                    accessBitMask,
+                    searchMapSize
                 )
             ) {
                 return true
@@ -311,7 +311,8 @@ public class SmartPathFinder(
         objRot: Int,
         objShape: Int,
         accessBitMask: Int,
-        collision: CollisionStrategy
+        collision: CollisionStrategy,
+        reachStrategy: ReachStrategy
     ): Boolean {
         var x: Int
         var y: Int
@@ -322,7 +323,7 @@ public class SmartPathFinder(
             currLocalY = validLocalY[bufReaderIndex]
             bufReaderIndex = (bufReaderIndex + 1) and (ringBufferSize - 1)
 
-            if (reached(
+            if (reachStrategy.reached(
                     flags,
                     currLocalX,
                     currLocalY,
@@ -333,7 +334,8 @@ public class SmartPathFinder(
                     srcSize,
                     objRot,
                     objShape,
-                    accessBitMask
+                    accessBitMask,
+                    searchMapSize
                 )
             ) {
                 return true
@@ -446,7 +448,8 @@ public class SmartPathFinder(
         objRot: Int,
         objShape: Int,
         accessBitMask: Int,
-        collision: CollisionStrategy
+        collision: CollisionStrategy,
+        reachStrategy: ReachStrategy
     ): Boolean {
         var x: Int
         var y: Int
@@ -457,7 +460,7 @@ public class SmartPathFinder(
             currLocalY = validLocalY[bufReaderIndex]
             bufReaderIndex = (bufReaderIndex + 1) and (ringBufferSize - 1)
 
-            if (reached(
+            if (reachStrategy.reached(
                     flags,
                     currLocalX,
                     currLocalY,
@@ -468,7 +471,8 @@ public class SmartPathFinder(
                     srcSize,
                     objRot,
                     objShape,
-                    accessBitMask
+                    accessBitMask,
+                    searchMapSize
                 )
             ) {
                 return true
@@ -655,42 +659,6 @@ public class SmartPathFinder(
         return !(lowestCost == MAX_ALTERNATIVE_ROUTE_LOWEST_COST || (srcX == currLocalX && srcY == currLocalY))
     }
 
-    private fun reached(
-        flags: IntArray,
-        srcX: Int,
-        srcY: Int,
-        destX: Int,
-        destY: Int,
-        destWidth: Int,
-        destHeight: Int,
-        srcSize: Int,
-        rotation: Int,
-        shape: Int,
-        accessBitMask: Int
-    ): Boolean {
-        if (srcX == destX && srcY == destY) {
-            return true
-        }
-        return when (shape.exitStrategy) {
-            WALL_STRATEGY -> reachWall(flags, searchMapSize, srcX, srcY, destX, destY, srcSize, shape, rotation)
-            WALL_DECO_STRATEGY -> reachWallDeco(
-                flags,
-                searchMapSize,
-                srcX,
-                srcY,
-                destX,
-                destY,
-                srcSize,
-                shape,
-                rotation
-            )
-            RECTANGLE_STRATEGY -> reachRectangle(
-                flags, searchMapSize, accessBitMask, srcX, srcY, destX, destY, srcSize, destWidth, destHeight
-            )
-            else -> false
-        }
-    }
-
     private fun reset() {
         Arrays.setAll(directions) { 0 }
         Arrays.setAll(distances) { DEFAULT_DISTANCE_VALUE }
@@ -712,13 +680,4 @@ public class SmartPathFinder(
         val index = (y * searchMapSize) + x
         return this[index]
     }
-
-    private val Int.exitStrategy: Int
-        get() = when {
-            this == -1 -> NO_STRATEGY
-            this in 0..3 || this == 9 -> WALL_STRATEGY
-            this < 9 -> WALL_DECO_STRATEGY
-            this in 10..11 || this == 22 -> RECTANGLE_STRATEGY
-            else -> NO_STRATEGY
-        }
 }
