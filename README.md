@@ -37,7 +37,9 @@ fun clipFlags(centerX: Int, centerY: Int, level: Int, size: Int): IntArray {
              * tiles in the world.
              */
             val flag = collisionMap.get(coords)
-            val index = (y * size) + x
+            val lx = x - (centerX - half)
+            val ly = y - (centerY - half)
+            val index = (ly * size) + lx
             flags[index] = flag
         }
     }
