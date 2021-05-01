@@ -51,7 +51,7 @@ public class SmartPathFinder(
         srcSize: Int = 1,
         destWidth: Int = 0,
         destHeight: Int = 0,
-        objRot: Int = 0,
+        objRot: Int = 10,
         objShape: Int = -1,
         moveNear: Boolean = true,
         accessBitMask: Int = 0,
