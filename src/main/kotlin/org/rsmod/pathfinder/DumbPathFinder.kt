@@ -1,22 +1,29 @@
 package org.rsmod.pathfinder
 
 import org.rsmod.pathfinder.bound.reachRectangle
-import org.rsmod.pathfinder.collision.CollisionStrategies
 import org.rsmod.pathfinder.collision.CollisionStrategy
 import org.rsmod.pathfinder.flag.CollisionFlag
+import org.rsmod.pathfinder.reach.ReachStrategy
 
-public class DumbPathFinder(public val searchMapSize: Int = DEFAULT_SEARCH_MAP_SIZE) {
+public class DumbPathFinder(public val searchMapSize: Int = DEFAULT_SEARCH_MAP_SIZE) : PathFinder {
 
-    public fun findPath(
+    @Suppress("UNUSED_PARAMETER")
+    public override fun findPath(
         flags: IntArray,
         srcX: Int,
         srcY: Int,
         destX: Int,
         destY: Int,
-        srcSize: Int = 1,
-        destWidth: Int = 0,
-        destHeight: Int = 0,
-        collision: CollisionStrategy = CollisionStrategies.Normal
+        srcSize: Int,
+        destWidth: Int,
+        destHeight: Int,
+        objRot: Int,
+        objShape: Int,
+        moveNear: Boolean,
+        accessBitMask: Int,
+        maxTurns: Int,
+        collision: CollisionStrategy,
+        reachStrategy: ReachStrategy
     ): Route {
         val baseX = srcX - (searchMapSize / 2)
         val baseY = srcY - (searchMapSize / 2)

@@ -13,7 +13,6 @@ import kotlin.math.abs
 private const val DEFAULT_RESET_ON_SEARCH = true
 internal const val DEFAULT_SEARCH_MAP_SIZE = 128
 private const val DEFAULT_RING_BUFFER_SIZE = 4096
-private const val DEFAULT_MAX_TURNS = 24
 
 private const val DEFAULT_DISTANCE_VALUE = 99999999
 private const val DEFAULT_SRC_DIRECTION_VALUE = 99
@@ -25,6 +24,9 @@ private const val MAX_ALTERNATIVE_ROUTE_DISTANCE_FROM_DESTINATION = 10
 /*
  * For optimization, we use this value to separate each section
  * where the list of route coordinates made a turn in any direction.
+ *
+ * However, this means that coordinates [0,0] should not be used
+ * in a [Route], otherwise there may be unforeseen consequences.
  */
 private val TURN_COORDS = RouteCoordinates(0)
 
@@ -40,24 +42,24 @@ public class SmartPathFinder(
     private var bufWriterIndex: Int = 0,
     private var currLocalX: Int = 0,
     private var currLocalY: Int = 0
-) {
+) : PathFinder {
 
-    public fun findPath(
+    public override fun findPath(
         flags: IntArray,
         srcX: Int,
         srcY: Int,
         destX: Int,
         destY: Int,
-        srcSize: Int = 1,
-        destWidth: Int = 0,
-        destHeight: Int = 0,
-        objRot: Int = 10,
-        objShape: Int = -1,
-        moveNear: Boolean = true,
-        accessBitMask: Int = 0,
-        maxTurns: Int = DEFAULT_MAX_TURNS,
-        collision: CollisionStrategy = CollisionStrategies.Normal,
-        reachStrategy: ReachStrategy = DefaultReachStrategy
+        srcSize: Int,
+        destWidth: Int,
+        destHeight: Int,
+        objRot: Int,
+        objShape: Int,
+        moveNear: Boolean,
+        accessBitMask: Int,
+        maxTurns: Int,
+        collision: CollisionStrategy,
+        reachStrategy: ReachStrategy
     ): Route {
         require(flags.size == directions.size) {
             "Clipping flag size must be same size as [directions] and [distances]"
