@@ -13,10 +13,10 @@ internal object DefaultReachStrategy : ReachStrategy {
 
     override fun reached(
         flags: IntArray,
-        srcX: Int,
-        srcY: Int,
-        destX: Int,
-        destY: Int,
+        localSrcX: Int,
+        localSrcY: Int,
+        localDestX: Int,
+        localDestY: Int,
         destWidth: Int,
         destHeight: Int,
         srcSize: Int,
@@ -25,25 +25,44 @@ internal object DefaultReachStrategy : ReachStrategy {
         accessBitMask: Int,
         searchMapSize: Int
     ): Boolean {
-        if (srcX == destX && srcY == destY) {
+        if (localSrcX == localDestX && localSrcY == localDestY) {
             return true
         }
 
         return when (shape.exitStrategy) {
-            WALL_STRATEGY -> reachWall(flags, searchMapSize, srcX, srcY, destX, destY, srcSize, shape, rotation)
+            WALL_STRATEGY -> reachWall(
+                flags,
+                searchMapSize,
+                localSrcX,
+                localSrcY,
+                localDestX,
+                localDestY,
+                srcSize,
+                shape,
+                rotation
+            )
             WALL_DECO_STRATEGY -> reachWallDeco(
                 flags,
                 searchMapSize,
-                srcX,
-                srcY,
-                destX,
-                destY,
+                localSrcX,
+                localSrcY,
+                localDestX,
+                localDestY,
                 srcSize,
                 shape,
                 rotation
             )
             RECTANGLE_STRATEGY -> reachRectangle(
-                flags, searchMapSize, accessBitMask, srcX, srcY, destX, destY, srcSize, destWidth, destHeight
+                flags,
+                searchMapSize,
+                accessBitMask,
+                localSrcX,
+                localSrcY,
+                localDestX,
+                localDestY,
+                srcSize,
+                destWidth,
+                destHeight
             )
             else -> false
         }

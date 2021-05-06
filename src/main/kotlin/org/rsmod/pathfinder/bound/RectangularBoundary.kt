@@ -6,83 +6,93 @@ internal fun reachRectangle(
     flags: IntArray,
     mapSize: Int,
     accessBitMask: Int,
-    srcX: Int,
-    srcY: Int,
-    destX: Int,
-    destY: Int,
+    localSrcX: Int,
+    localSrcY: Int,
+    localDestX: Int,
+    localDestY: Int,
     srcSize: Int,
     destWidth: Int,
     destHeight: Int
 ): Boolean = when {
     srcSize > 1 -> {
-        collides(srcX, srcY, destX, destY, srcSize, srcSize, destWidth, destHeight) ||
+        collides(localSrcX, localSrcY, localDestX, localDestY, srcSize, srcSize, destWidth, destHeight) ||
             reachRectangleN(
                 flags,
                 mapSize,
                 accessBitMask,
-                srcX,
-                srcY,
-                destX,
-                destY,
+                localSrcX,
+                localSrcY,
+                localDestX,
+                localDestY,
                 srcSize,
                 srcSize,
                 destWidth,
                 destHeight
             )
     }
-    else -> reachRectangle1(flags, mapSize, accessBitMask, srcX, srcY, destX, destY, destWidth, destHeight)
+    else -> reachRectangle1(
+        flags,
+        mapSize,
+        accessBitMask,
+        localSrcX,
+        localSrcY,
+        localDestX,
+        localDestY,
+        destWidth,
+        destHeight
+    )
 }
 
 private fun collides(
-    srcX: Int,
-    srcY: Int,
-    destX: Int,
-    destY: Int,
+    localSrcX: Int,
+    localSrcY: Int,
+    localDestX: Int,
+    localDestY: Int,
     srcWidth: Int,
     srcHeight: Int,
     destWidth: Int,
     destHeight: Int
-): Boolean = if (srcX >= destX + destWidth || srcX + srcWidth <= destX) {
+): Boolean = if (localSrcX >= localDestX + destWidth || localSrcX + srcWidth <= localDestX) {
     false
 } else {
-    srcY < destY + destHeight && destY < srcHeight + srcY
+    localSrcY < localDestY + destHeight && localDestY < srcHeight + localSrcY
 }
 
 private fun reachRectangle1(
     flags: IntArray,
     mapSize: Int,
     accessBitMask: Int,
-    srcX: Int,
-    srcY: Int,
-    destX: Int,
-    destY: Int,
+    localSrcX: Int,
+    localSrcY: Int,
+    localDestX: Int,
+    localDestY: Int,
     destWidth: Int,
     destHeight: Int
 ): Boolean {
-    val east = destX + destWidth - 1
-    val north = destY + destHeight - 1
+    val east = localDestX + destWidth - 1
+    val north = localDestY + destHeight - 1
 
-    if (srcX in destX..east && srcY >= destY && srcY <= north)
+    if (localSrcX in localDestX..east && localSrcY >= localDestY && localSrcY <= north)
         return true
 
-    if (srcX == destX - 1 && srcY >= destY && srcY <= north &&
-        (flag(flags, mapSize, srcX, srcY) and 0x8) == 0 &&
+    if (localSrcX == localDestX - 1 && localSrcY >= localDestY && localSrcY <= north &&
+        (flag(flags, mapSize, localSrcX, localSrcY) and 0x8) == 0 &&
         (accessBitMask and 0x8) == 0
     ) return true
 
-    if (srcX == east + 1 && srcY >= destY && srcY <= north &&
-        (flag(flags, mapSize, srcX, srcY) and 0x80) == 0 &&
+    if (localSrcX == east + 1 && localSrcY >= localDestY && localSrcY <= north &&
+        (flag(flags, mapSize, localSrcX, localSrcY) and 0x80) == 0 &&
         (accessBitMask and 0x2) == 0
     ) return true
 
-    if (srcY + 1 == destY && srcX >= destX && srcX <= east &&
-        (flag(flags, mapSize, srcX, srcY) and 0x2) == 0 &&
+    if (localSrcY + 1 == localDestY && localSrcX >= localDestX && localSrcX <= east &&
+        (flag(flags, mapSize, localSrcX, localSrcY) and 0x2) == 0 &&
         (accessBitMask and 0x4) == 0
 
     ) return true
 
-    return srcY == north + 1 && srcX >= destX && srcX <= east &&
-        (flag(flags, mapSize, srcX, srcY) and 0x20) == 0 &&
+    return localSrcY == north + 1 && localSrcX >= localDestX && localSrcX <= east &&
+        (flag(flags, mapSize, localSrcX, localSrcY) and 0x20) == 0 &&
         (accessBitMask and 0x1) == 0
 }
 
@@ -90,75 +100,75 @@ private fun reachRectangleN(
     flags: IntArray,
     mapSize: Int,
     accessBitMask: Int,
-    srcX: Int,
-    srcY: Int,
-    destX: Int,
-    destY: Int,
+    localSrcX: Int,
+    localSrcY: Int,
+    localDestX: Int,
+    localDestY: Int,
     srcWidth: Int,
     srcHeight: Int,
     destWidth: Int,
     destHeight: Int
 ): Boolean {
-    val srcEast = srcX + srcWidth
-    val srcNorth = srcHeight + srcY
-    val destEast = destWidth + destX
-    val destNorth = destHeight + destY
-    if (srcX in destX until destEast) {
-        if (destY == srcNorth && (accessBitMask and 0x4) == 0) {
+    val srcEast = localSrcX + srcWidth
+    val srcNorth = srcHeight + localSrcY
+    val destEast = destWidth + localDestX
+    val destNorth = destHeight + localDestY
+    if (localSrcX in localDestX until destEast) {
+        if (localDestY == srcNorth && (accessBitMask and 0x4) == 0) {
             val minEast = min(srcEast, destEast)
-            for (x in srcX until minEast) {
+            for (x in localSrcX until minEast) {
                 if ((flag(flags, mapSize, x, srcNorth - 1) and 0x2) == 0) {
                     return true
                 }
             }
-        } else if (destNorth == srcY && (accessBitMask and 0x1) == 0) {
+        } else if (destNorth == localSrcY && (accessBitMask and 0x1) == 0) {
             val minEastX = min(srcEast, destEast)
-            for (x in srcX until minEastX) {
-                if ((flag(flags, mapSize, x, srcY) and 0x20) == 0) {
+            for (x in localSrcX until minEastX) {
+                if ((flag(flags, mapSize, x, localSrcY) and 0x20) == 0) {
                     return true
                 }
             }
         }
-    } else if (srcEast in (destX + 1)..destEast) {
-        if (destY == srcNorth && (accessBitMask and 0x4) == 0) {
-            for (x in destX until srcEast) {
+    } else if (srcEast in (localDestX + 1)..destEast) {
+        if (localDestY == srcNorth && (accessBitMask and 0x4) == 0) {
+            for (x in localDestX until srcEast) {
                 if ((flag(flags, mapSize, x, srcNorth - 1) and 0x2) == 0) {
                     return true
                 }
             }
-        } else if (srcY == destNorth && (accessBitMask and 0x1) == 0) {
-            for (x in destX until srcEast) {
-                if ((flag(flags, mapSize, x, srcY) and 0x2) == 0) {
+        } else if (localSrcY == destNorth && (accessBitMask and 0x1) == 0) {
+            for (x in localDestX until srcEast) {
+                if ((flag(flags, mapSize, x, localSrcY) and 0x2) == 0) {
                     return true
                 }
             }
         }
-    } else if (srcY in destY until destNorth) {
-        if (srcEast == destX && (accessBitMask and 0x8) == 0) {
+    } else if (localSrcY in localDestY until destNorth) {
+        if (srcEast == localDestX && (accessBitMask and 0x8) == 0) {
             val minNorthY = min(srcNorth, destNorth)
-            for (y in srcY until minNorthY) {
+            for (y in localSrcY until minNorthY) {
                 if ((flag(flags, mapSize, srcEast - 1, y) and 0x8) == 0) {
                     return true
                 }
             }
-        } else if (destEast == srcX && (accessBitMask and 0x2) == 0) {
+        } else if (destEast == localSrcX && (accessBitMask and 0x2) == 0) {
             val minNorthY = min(srcNorth, destNorth)
-            for (y in srcY until minNorthY) {
-                if ((flag(flags, mapSize, srcX, y) and 0x80) == 0) {
+            for (y in localSrcY until minNorthY) {
+                if ((flag(flags, mapSize, localSrcX, y) and 0x80) == 0) {
                     return true
                 }
             }
         }
-    } else if (srcNorth in (destY + 1)..destNorth) {
-        if (destX == srcEast && (accessBitMask and 0x8) == 0) {
-            for (y in destY until srcNorth) {
+    } else if (srcNorth in (localDestY + 1)..destNorth) {
+        if (localDestX == srcEast && (accessBitMask and 0x8) == 0) {
+            for (y in localDestY until srcNorth) {
                 if ((flag(flags, mapSize, srcEast - 1, y) and 0x8) == 0) {
                     return true
                 }
             }
-        } else if (destEast == srcX && (accessBitMask and 0x2) == 0) {
-            for (y in destY until srcNorth) {
-                if ((flag(flags, mapSize, srcX, y) and 0x80) == 0) {
+        } else if (destEast == localSrcX && (accessBitMask and 0x2) == 0) {
+            for (y in localDestY until srcNorth) {
+                if ((flag(flags, mapSize, localSrcX, y) and 0x80) == 0) {
                     return true
                 }
             }

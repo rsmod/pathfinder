@@ -4,10 +4,10 @@ public interface ReachStrategy {
 
     public fun reached(
         flags: IntArray,
-        srcX: Int,
-        srcY: Int,
-        destX: Int,
-        destY: Int,
+        localSrcX: Int,
+        localSrcY: Int,
+        localDestX: Int,
+        localDestY: Int,
         destWidth: Int,
         destHeight: Int,
         srcSize: Int,

@@ -1,22 +1,17 @@
 package org.rsmod.pathfinder
 
-import org.rsmod.pathfinder.collision.CollisionStrategies
 import org.rsmod.pathfinder.collision.CollisionStrategy
 import org.rsmod.pathfinder.flag.CollisionFlag
 import org.rsmod.pathfinder.flag.DirectionFlag
-import org.rsmod.pathfinder.reach.DefaultReachStrategy
 import org.rsmod.pathfinder.reach.ReachStrategy
 import java.util.Arrays
-import kotlin.collections.ArrayList
 import kotlin.math.abs
 
 private const val DEFAULT_RESET_ON_SEARCH = true
 internal const val DEFAULT_SEARCH_MAP_SIZE = 128
 private const val DEFAULT_RING_BUFFER_SIZE = 4096
-
-private const val DEFAULT_DISTANCE_VALUE = 99999999
+private const val DEFAULT_DISTANCE_VALUE = 99_999_999
 private const val DEFAULT_SRC_DIRECTION_VALUE = 99
-
 private const val MAX_ALTERNATIVE_ROUTE_LOWEST_COST = 1000
 private const val MAX_ALTERNATIVE_ROUTE_SEEK_RANGE = 100
 private const val MAX_ALTERNATIVE_ROUTE_DISTANCE_FROM_DESTINATION = 10
@@ -171,8 +166,8 @@ public class SmartPathFinder(
 
     private fun findPath1(
         flags: IntArray,
-        destX: Int,
-        destY: Int,
+        localDestX: Int,
+        localDestY: Int,
         destWidth: Int,
         destHeight: Int,
         srcSize: Int,
@@ -196,8 +191,8 @@ public class SmartPathFinder(
                     flags,
                     currLocalX,
                     currLocalY,
-                    destX,
-                    destY,
+                    localDestX,
+                    localDestY,
                     destWidth,
                     destHeight,
                     srcSize,
@@ -305,8 +300,8 @@ public class SmartPathFinder(
 
     private fun findPath2(
         flags: IntArray,
-        destX: Int,
-        destY: Int,
+        localDestX: Int,
+        localDestY: Int,
         destWidth: Int,
         destHeight: Int,
         srcSize: Int,
@@ -329,8 +324,8 @@ public class SmartPathFinder(
                     flags,
                     currLocalX,
                     currLocalY,
-                    destX,
-                    destY,
+                    localDestX,
+                    localDestY,
                     destWidth,
                     destHeight,
                     srcSize,
@@ -442,8 +437,8 @@ public class SmartPathFinder(
 
     private fun findPathN(
         flags: IntArray,
-        destX: Int,
-        destY: Int,
+        localDestX: Int,
+        localDestY: Int,
         destWidth: Int,
         destHeight: Int,
         srcSize: Int,
@@ -466,8 +461,8 @@ public class SmartPathFinder(
                     flags,
                     currLocalX,
                     currLocalY,
-                    destX,
-                    destY,
+                    localDestX,
+                    localDestY,
                     destWidth,
                     destHeight,
                     srcSize,
@@ -629,16 +624,16 @@ public class SmartPathFinder(
     }
 
     private fun findClosestApproachPoint(
-        srcX: Int,
-        srcY: Int,
-        destX: Int,
-        destY: Int
+        localSrcX: Int,
+        localSrcY: Int,
+        localDestX: Int,
+        localDestY: Int
     ): Boolean {
         var lowestCost = MAX_ALTERNATIVE_ROUTE_LOWEST_COST
         var maxAlternativePath = MAX_ALTERNATIVE_ROUTE_SEEK_RANGE
         val alternativeRouteRange = MAX_ALTERNATIVE_ROUTE_DISTANCE_FROM_DESTINATION
-        val radiusX = destX - alternativeRouteRange..destX + alternativeRouteRange
-        val radiusY = destY - alternativeRouteRange..destY + alternativeRouteRange
+        val radiusX = localDestX - alternativeRouteRange..localDestX + alternativeRouteRange
+        val radiusY = localDestY - alternativeRouteRange..localDestY + alternativeRouteRange
         for (x in radiusX) {
             for (y in radiusY) {
                 if (x !in 0 until searchMapSize ||
@@ -647,8 +642,8 @@ public class SmartPathFinder(
                 ) {
                     continue
                 }
-                val dx = abs(destX - x)
-                val dy = abs(destY - y)
+                val dx = abs(localDestX - x)
+                val dy = abs(localDestY - y)
                 val cost = dx * dx + dy * dy
                 if (cost < lowestCost || (cost == lowestCost && maxAlternativePath > distances[x, y])) {
                     currLocalX = x
@@ -658,7 +653,10 @@ public class SmartPathFinder(
                 }
             }
         }
-        return !(lowestCost == MAX_ALTERNATIVE_ROUTE_LOWEST_COST || (srcX == currLocalX && srcY == currLocalY))
+        return !(
+            lowestCost == MAX_ALTERNATIVE_ROUTE_LOWEST_COST ||
+                localSrcX == currLocalX && localSrcY == currLocalY
+            )
     }
 
     private fun reset() {
@@ -668,12 +666,12 @@ public class SmartPathFinder(
         bufWriterIndex = 0
     }
 
-    private fun setNextValidLocalCoords(x: Int, y: Int, direction: Int, distance: Int) {
-        val pathIndex = (y * searchMapSize) + x
+    private fun setNextValidLocalCoords(localX: Int, localY: Int, direction: Int, distance: Int) {
+        val pathIndex = (localY * searchMapSize) + localX
         directions[pathIndex] = direction
         distances[pathIndex] = distance
-        validLocalX[bufWriterIndex] = x
-        validLocalY[bufWriterIndex] = y
+        validLocalX[bufWriterIndex] = localX
+        validLocalY[bufWriterIndex] = localY
         bufWriterIndex = (bufWriterIndex + 1) and (ringBufferSize - 1)
     }
 

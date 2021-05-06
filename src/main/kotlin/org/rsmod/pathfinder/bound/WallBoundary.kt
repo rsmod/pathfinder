@@ -3,27 +3,28 @@ package org.rsmod.pathfinder.bound
 internal fun reachWall(
     flags: IntArray,
     mapSize: Int,
-    srcX: Int,
-    srcY: Int,
-    destX: Int,
-    destY: Int,
+    localSrcX: Int,
+    localSrcY: Int,
+    localDestX: Int,
+    localDestY: Int,
     srcSize: Int,
     shape: Int,
     rot: Int
 ): Boolean = when {
-    srcSize == 1 && srcX == destX && srcY == destY -> true
-    srcSize != 1 && destX >= srcX && srcSize + srcX - 1 >= destX && srcSize + destY - 1 >= destY -> true
-    srcSize == 1 -> reachWall1(flags, mapSize, srcX, srcY, destX, destY, shape, rot)
-    else -> reachWallN(flags, mapSize, srcX, srcY, destX, destY, srcSize, shape, rot)
+    srcSize == 1 && localSrcX == localDestX && localSrcY == localDestY -> true
+    srcSize != 1 && localDestX >= localSrcX && srcSize + localSrcX - 1 >= localDestX &&
+        srcSize + localDestY - 1 >= localDestY -> true
+    srcSize == 1 -> reachWall1(flags, mapSize, localSrcX, localSrcY, localDestX, localDestY, shape, rot)
+    else -> reachWallN(flags, mapSize, localSrcX, localSrcY, localDestX, localDestY, srcSize, shape, rot)
 }
 
 private fun reachWall1(
     flags: IntArray,
     mapSize: Int,
-    srcX: Int,
-    srcY: Int,
-    destX: Int,
-    destY: Int,
+    localSrcX: Int,
+    localSrcY: Int,
+    localDestX: Int,
+    localDestY: Int,
     shape: Int,
     rot: Int
 ): Boolean {
@@ -31,43 +32,43 @@ private fun reachWall1(
         0 -> {
             when (rot) {
                 0 -> {
-                    if (srcX == destX - 1 && srcY == destY)
+                    if (localSrcX == localDestX - 1 && localSrcY == localDestY)
                         return true
-                    if (srcX == destX && srcY == destY + 1 &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0120) == 0
+                    if (localSrcX == localDestX && localSrcY == localDestY + 1 &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0120) == 0
                     ) return true
-                    if (srcX == destX && srcY == destY - 1 &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0102) == 0
+                    if (localSrcX == localDestX && localSrcY == localDestY - 1 &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0102) == 0
                     ) return true
                 }
                 1 -> {
-                    if (srcX == destX && srcY == destY + 1)
+                    if (localSrcX == localDestX && localSrcY == localDestY + 1)
                         return true
-                    if (srcX == destX - 1 && srcY == destY &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0108) == 0
+                    if (localSrcX == localDestX - 1 && localSrcY == localDestY &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0108) == 0
                     ) return true
-                    if (srcX == destX + 1 && srcY == destY &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0180) == 0
+                    if (localSrcX == localDestX + 1 && localSrcY == localDestY &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0180) == 0
                     ) return true
                 }
                 2 -> {
-                    if (srcX == destX + 1 && srcY == destY)
+                    if (localSrcX == localDestX + 1 && localSrcY == localDestY)
                         return true
-                    if (srcX == destX && srcY == destY + 1 &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0120) == 0
+                    if (localSrcX == localDestX && localSrcY == localDestY + 1 &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0120) == 0
                     ) return true
-                    if (srcX == destX && srcY == destY - 1 &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0102) == 0
+                    if (localSrcX == localDestX && localSrcY == localDestY - 1 &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0102) == 0
                     ) return true
                 }
                 3 -> {
-                    if (srcX == destX && srcY == destY - 1)
+                    if (localSrcX == localDestX && localSrcY == localDestY - 1)
                         return true
-                    if (srcX == destX - 1 && srcY == destY &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0108) == 0
+                    if (localSrcX == localDestX - 1 && localSrcY == localDestY &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0108) == 0
                     ) return true
-                    if (srcX == destX + 1 && srcY == destY &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0180) == 0
+                    if (localSrcX == localDestX + 1 && localSrcY == localDestY &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0180) == 0
                     ) return true
                 }
             }
@@ -75,68 +76,68 @@ private fun reachWall1(
         2 -> {
             when (rot) {
                 0 -> {
-                    if (srcX == destX - 1 && srcY == destY)
+                    if (localSrcX == localDestX - 1 && localSrcY == localDestY)
                         return true
-                    if (srcX == destX && srcY == destY + 1)
+                    if (localSrcX == localDestX && localSrcY == localDestY + 1)
                         return true
-                    if (srcX == destX + 1 && srcY == destY &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0180) == 0
+                    if (localSrcX == localDestX + 1 && localSrcY == localDestY &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0180) == 0
                     ) return true
-                    if (srcX == destX && srcY == destY - 1 &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0102) == 0
+                    if (localSrcX == localDestX && localSrcY == localDestY - 1 &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0102) == 0
                     ) return true
                 }
                 1 -> {
-                    if (srcX == destX - 1 && srcY == destY &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0108) == 0
+                    if (localSrcX == localDestX - 1 && localSrcY == localDestY &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0108) == 0
                     ) return true
-                    if (srcX == destX && srcY == destY + 1)
+                    if (localSrcX == localDestX && localSrcY == localDestY + 1)
                         return true
-                    if (srcX == destX + 1 && srcY == destY)
+                    if (localSrcX == localDestX + 1 && localSrcY == localDestY)
                         return true
-                    if (srcX == destX && srcY == destY - 1 &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0102) == 0
+                    if (localSrcX == localDestX && localSrcY == localDestY - 1 &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0102) == 0
                     ) return true
                 }
                 2 -> {
-                    if (srcX == destX - 1 && srcY == destY &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0108) == 0
+                    if (localSrcX == localDestX - 1 && localSrcY == localDestY &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0108) == 0
                     ) return true
-                    if (srcX == destX && srcY == destY + 1 &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0120) == 0
+                    if (localSrcX == localDestX && localSrcY == localDestY + 1 &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0120) == 0
                     ) return true
-                    if (srcX == destX + 1 && srcY == destY)
+                    if (localSrcX == localDestX + 1 && localSrcY == localDestY)
                         return true
-                    if (srcX == destX && srcY == destY - 1)
+                    if (localSrcX == localDestX && localSrcY == localDestY - 1)
                         return true
                 }
                 3 -> {
-                    if (srcX == destX - 1 && srcY == destY)
+                    if (localSrcX == localDestX - 1 && localSrcY == localDestY)
                         return true
-                    if (srcX == destX && srcY == destY + 1 &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0120) == 0
+                    if (localSrcX == localDestX && localSrcY == localDestY + 1 &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0120) == 0
                     ) return true
-                    if (srcX == destX + 1 && srcY == destY &&
-                        (flag(flags, mapSize, srcX, srcY) and 0x12c0180) == 0
+                    if (localSrcX == localDestX + 1 && localSrcY == localDestY &&
+                        (flag(flags, mapSize, localSrcX, localSrcY) and 0x12c0180) == 0
                     ) return true
-                    if (srcX == destX && srcY == destY - 1)
+                    if (localSrcX == localDestX && localSrcY == localDestY - 1)
                         return true
                 }
             }
         }
         9 -> {
-            if (srcX == destX && srcY == destY + 1 &&
-                (flag(flags, mapSize, srcX, srcY) and 0x20) == 0
+            if (localSrcX == localDestX && localSrcY == localDestY + 1 &&
+                (flag(flags, mapSize, localSrcX, localSrcY) and 0x20) == 0
             ) return true
-            if (srcX == destX && srcY == destY - 1 &&
-                (flag(flags, mapSize, srcX, srcY) and 0x2) == 0
+            if (localSrcX == localDestX && localSrcY == localDestY - 1 &&
+                (flag(flags, mapSize, localSrcX, localSrcY) and 0x2) == 0
             ) return true
-            if (srcX == destX - 1 && srcY == destY &&
-                (flag(flags, mapSize, srcX, srcY) and 0x8) == 0
+            if (localSrcX == localDestX - 1 && localSrcY == localDestY &&
+                (flag(flags, mapSize, localSrcX, localSrcY) and 0x8) == 0
             ) return true
 
-            return srcX == destX + 1 && srcY == destY &&
-                (flag(flags, mapSize, srcX, srcY) and 0x80) == 0
+            return localSrcX == localDestX + 1 && localSrcY == localDestY &&
+                (flag(flags, mapSize, localSrcX, localSrcY) and 0x80) == 0
         }
     }
     return false
@@ -145,57 +146,57 @@ private fun reachWall1(
 private fun reachWallN(
     flags: IntArray,
     mapSize: Int,
-    srcX: Int,
-    srcY: Int,
-    destX: Int,
-    destY: Int,
+    localSrcX: Int,
+    localSrcY: Int,
+    localDestX: Int,
+    localDestY: Int,
     srcSize: Int,
     shape: Int,
     rot: Int
 ): Boolean {
-    val east = srcX + srcSize - 1
-    val north = srcY + srcSize - 1
+    val east = localSrcX + srcSize - 1
+    val north = localSrcY + srcSize - 1
     when (shape) {
         0 -> {
             when (rot) {
                 0 -> {
-                    if (srcX == destX - srcSize && srcY <= destY && north >= destY)
+                    if (localSrcX == localDestX - srcSize && localSrcY <= localDestY && north >= localDestY)
                         return true
-                    if (destX in srcX..east && srcY == destY + 1 &&
-                        (flag(flags, mapSize, destX, srcY) and 0x12c0120) == 0
+                    if (localDestX in localSrcX..east && localSrcY == localDestY + 1 &&
+                        (flag(flags, mapSize, localDestX, localSrcY) and 0x12c0120) == 0
                     ) return true
-                    if (destX in srcX..east && srcY == destY - srcSize &&
-                        (flag(flags, mapSize, destX, north) and 0x12c0102) == 0
+                    if (localDestX in localSrcX..east && localSrcY == localDestY - srcSize &&
+                        (flag(flags, mapSize, localDestX, north) and 0x12c0102) == 0
                     ) return true
                 }
                 1 -> {
-                    if (destX in srcX..east && srcY == destY + 1)
+                    if (localDestX in localSrcX..east && localSrcY == localDestY + 1)
                         return true
-                    if (srcX == destX - srcSize && srcY <= destY && north >= destY &&
-                        (flag(flags, mapSize, east, destY) and 0x12c0108) == 0
+                    if (localSrcX == localDestX - srcSize && localSrcY <= localDestY && north >= localDestY &&
+                        (flag(flags, mapSize, east, localDestY) and 0x12c0108) == 0
                     ) return true
-                    if (srcX == destX + 1 && srcY <= destY && north >= destY &&
-                        (flag(flags, mapSize, srcX, destY) and 0x12c0180) == 0
+                    if (localSrcX == localDestX + 1 && localSrcY <= localDestY && north >= localDestY &&
+                        (flag(flags, mapSize, localSrcX, localDestY) and 0x12c0180) == 0
                     ) return true
                 }
                 2 -> {
-                    if (srcX == destX + 1 && srcY <= destY && north >= destY)
+                    if (localSrcX == localDestX + 1 && localSrcY <= localDestY && north >= localDestY)
                         return true
-                    if (destX in srcX..east && srcY == destY + 1 &&
-                        (flag(flags, mapSize, destX, srcY) and 0x12c0120) == 0
+                    if (localDestX in localSrcX..east && localSrcY == localDestY + 1 &&
+                        (flag(flags, mapSize, localDestX, localSrcY) and 0x12c0120) == 0
                     ) return true
-                    if (destX in srcX..east && srcY == destY - srcSize &&
-                        (flag(flags, mapSize, destX, north) and 0x12c0102) == 0
+                    if (localDestX in localSrcX..east && localSrcY == localDestY - srcSize &&
+                        (flag(flags, mapSize, localDestX, north) and 0x12c0102) == 0
                     ) return true
                 }
                 3 -> {
-                    if (destX in srcX..east && srcY == destY - srcSize)
+                    if (localDestX in localSrcX..east && localSrcY == localDestY - srcSize)
                         return true
-                    if (srcX == destX - srcSize && srcY <= destY && north >= destY &&
-                        (flag(flags, mapSize, east, destY) and 0x12c0108) == 0
+                    if (localSrcX == localDestX - srcSize && localSrcY <= localDestY && north >= localDestY &&
+                        (flag(flags, mapSize, east, localDestY) and 0x12c0108) == 0
                     ) return true
-                    if (srcX == destX + 1 && srcY <= destY && north >= destY &&
-                        (flag(flags, mapSize, srcX, destY) and 0x12c0180) == 0
+                    if (localSrcX == localDestX + 1 && localSrcY <= localDestY && north >= localDestY &&
+                        (flag(flags, mapSize, localSrcX, localDestY) and 0x12c0180) == 0
                     ) return true
                 }
             }
@@ -203,68 +204,68 @@ private fun reachWallN(
         2 -> {
             when (rot) {
                 0 -> {
-                    if (srcX == destX - srcSize && srcY <= destY && north >= destY)
+                    if (localSrcX == localDestX - srcSize && localSrcY <= localDestY && north >= localDestY)
                         return true
-                    if (destX in srcX..east && srcY == destY + 1)
+                    if (localDestX in localSrcX..east && localSrcY == localDestY + 1)
                         return true
-                    if (srcX == destX + 1 && srcY <= destY && north >= destY &&
-                        (flag(flags, mapSize, srcX, destY) and 0x12c0180) == 0
+                    if (localSrcX == localDestX + 1 && localSrcY <= localDestY && north >= localDestY &&
+                        (flag(flags, mapSize, localSrcX, localDestY) and 0x12c0180) == 0
                     ) return true
-                    if (destX in srcX..east && srcY == destY - srcSize &&
-                        (flag(flags, mapSize, destX, north) and 0x12c0102) == 0
+                    if (localDestX in localSrcX..east && localSrcY == localDestY - srcSize &&
+                        (flag(flags, mapSize, localDestX, north) and 0x12c0102) == 0
                     ) return true
                 }
                 1 -> {
-                    if (srcX == destX - srcSize && srcY <= destY && north >= destY &&
-                        (flag(flags, mapSize, east, destY) and 0x12c0108) == 0
+                    if (localSrcX == localDestX - srcSize && localSrcY <= localDestY && north >= localDestY &&
+                        (flag(flags, mapSize, east, localDestY) and 0x12c0108) == 0
                     ) return true
-                    if (destX in srcX..east && srcY == destY + 1)
+                    if (localDestX in localSrcX..east && localSrcY == localDestY + 1)
                         return true
-                    if (srcX == destX + 1 && srcY <= destY && north >= destY)
+                    if (localSrcX == localDestX + 1 && localSrcY <= localDestY && north >= localDestY)
                         return true
-                    if (destX in srcX..east && srcY == destY - srcSize &&
-                        (flag(flags, mapSize, destX, north) and 0x12c0102) == 0
+                    if (localDestX in localSrcX..east && localSrcY == localDestY - srcSize &&
+                        (flag(flags, mapSize, localDestX, north) and 0x12c0102) == 0
                     ) return true
                 }
                 2 -> {
-                    if (srcX == destX - srcSize && srcY <= destY && north >= destY &&
-                        (flag(flags, mapSize, east, destY) and 0x12c0108) == 0
+                    if (localSrcX == localDestX - srcSize && localSrcY <= localDestY && north >= localDestY &&
+                        (flag(flags, mapSize, east, localDestY) and 0x12c0108) == 0
                     ) return true
-                    if (destX in srcX..east && srcY == destY + 1 &&
-                        (flag(flags, mapSize, destX, srcY) and 0x12c0120) == 0
+                    if (localDestX in localSrcX..east && localSrcY == localDestY + 1 &&
+                        (flag(flags, mapSize, localDestX, localSrcY) and 0x12c0120) == 0
                     ) return true
-                    if (srcX == destX + 1 && srcY <= destY && north >= destY)
+                    if (localSrcX == localDestX + 1 && localSrcY <= localDestY && north >= localDestY)
                         return true
-                    if (destX in srcX..east && srcY == destY - srcSize)
+                    if (localDestX in localSrcX..east && localSrcY == localDestY - srcSize)
                         return true
                 }
                 3 -> {
-                    if (srcX == destX - srcSize && srcY <= destY && north >= destY)
+                    if (localSrcX == localDestX - srcSize && localSrcY <= localDestY && north >= localDestY)
                         return true
-                    if (destX in srcX..east && srcY == destY + 1 &&
-                        (flag(flags, mapSize, destX, srcY) and 0x12c0120) == 0
+                    if (localDestX in localSrcX..east && localSrcY == localDestY + 1 &&
+                        (flag(flags, mapSize, localDestX, localSrcY) and 0x12c0120) == 0
                     ) return true
-                    if (srcX == destX + 1 && srcY <= destY && north >= destY &&
-                        (flag(flags, mapSize, srcX, destY) and 0x12c0180) == 0
+                    if (localSrcX == localDestX + 1 && localSrcY <= localDestY && north >= localDestY &&
+                        (flag(flags, mapSize, localSrcX, localDestY) and 0x12c0180) == 0
                     ) return true
-                    if (destX in srcX..east && srcY == destY - srcSize)
+                    if (localDestX in localSrcX..east && localSrcY == localDestY - srcSize)
                         return true
                 }
             }
         }
         9 -> {
-            if (destX in srcX..east && srcY == destY + 1 &&
-                (flag(flags, mapSize, destX, srcY) and 0x12c0120) == 0
+            if (localDestX in localSrcX..east && localSrcY == localDestY + 1 &&
+                (flag(flags, mapSize, localDestX, localSrcY) and 0x12c0120) == 0
             ) return true
-            if (destX in srcX..east && srcY == destY - srcSize &&
-                (flag(flags, mapSize, destX, north) and 0x12c0102) == 0
+            if (localDestX in localSrcX..east && localSrcY == localDestY - srcSize &&
+                (flag(flags, mapSize, localDestX, north) and 0x12c0102) == 0
             ) return true
-            if (srcX == destX - srcSize && srcY <= destY && north >= destY &&
-                (flag(flags, mapSize, east, destY) and 0x12c0108) == 0
+            if (localSrcX == localDestX - srcSize && localSrcY <= localDestY && north >= localDestY &&
+                (flag(flags, mapSize, east, localDestY) and 0x12c0108) == 0
             ) return true
 
-            return srcX == destX + 1 && srcY <= destY && north >= destY &&
-                (flag(flags, mapSize, srcX, destY) and 0x12c0180) == 0
+            return localSrcX == localDestX + 1 && localSrcY <= localDestY && north >= localDestY &&
+                (flag(flags, mapSize, localSrcX, localDestY) and 0x12c0180) == 0
         }
     }
     return false
