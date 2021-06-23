@@ -1,7 +1,7 @@
 package org.rsmod.pathfinder
 
 public data class Route(
-    private val coords: List<RouteCoordinates>,
+    public val coords: List<RouteCoordinates>,
     public val alternative: Boolean,
     public val success: Boolean
 ) : List<RouteCoordinates> by coords {
@@ -35,5 +35,33 @@ public inline class RouteCoordinates(private val packed: Int) {
 
     override fun toString(): String {
         return "${javaClass.simpleName}{x=$x, y=$y}"
+    }
+
+    public companion object {
+
+        @JvmStatic
+        public fun getX(coords: RouteCoordinates): Int {
+            return coords.x
+        }
+
+        @JvmStatic
+        public fun getY(coords: RouteCoordinates): Int {
+            return coords.y
+        }
+
+        @JvmStatic
+        public fun translate(coords: RouteCoordinates, xOffset: Int, yOffset: Int): RouteCoordinates {
+            return coords.translate(xOffset, yOffset)
+        }
+
+        @JvmStatic
+        public fun translateX(coords: RouteCoordinates, offset: Int): RouteCoordinates {
+            return coords.translateX(offset)
+        }
+
+        @JvmStatic
+        public fun translateY(coords: RouteCoordinates, offset: Int): RouteCoordinates {
+            return coords.translateY(offset)
+        }
     }
 }
